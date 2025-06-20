@@ -47,7 +47,7 @@ def load_scaler():
 fitur_regresi_svm = [
     'Certificates', 'Years of Experience', 'age', 'Time Arrival Strafe',
     'Project Proximity', 'Violation Risk Index', 'Company PCAB Score',
-    'Weekly Overtime Hours', 'Salary Bracket', 'is_good'
+    'Weekly Overtime Hours', 'Salary Bracket', 'is_good'  # Added 'is_good' to match training
 ]
 fitur_regresi_10 = [
     'Certificates', 'Years of Experience', 'age', 'Time Arrival Strafe',
@@ -62,7 +62,7 @@ fitur_regresi_9 = [
 fitur_regresi_nn = [
     'Certificates', 'Years of Experience', 'age', 'Time Arrival Strafe',
     'Project Proximity', 'Violation Risk Index', 'Company PCAB Score',
-    'Weekly Overtime Hours', 'Salary Bracket'
+    'Weekly Overtime Hours', 'Salary Bracket', 'is_good'  # Added 'is_good' to match training
 ]
 
 if menu == 'Prediksi Satuan':
@@ -123,16 +123,16 @@ elif menu == 'Prediksi Batch':
             for col in required_cols:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
             df = df.dropna(subset=required_cols)
-            X = df[required_cols].values
+            X = df[required_cols]  # Use DataFrame, not .values
             if config['scaler']:
                 scaler = joblib.load(config['scaler'])
-                X = scaler.transform(X)
+                X = pd.DataFrame(scaler.transform(X), columns=required_cols)  # Keep as DataFrame
             model = joblib.load(config['file'])
             # Cek apakah model hasil load benar-benar objek model
             if not hasattr(model, 'predict'):
                 st.error(f"File model '{config['file']}' bukan objek model yang valid. Pastikan file tersebut hasil training model sklearn.")
                 st.stop()
-            preds = model.predict(X)
+            preds = model.predict(X)  # Use DataFrame for prediction
             if config['type'] == 'klasifikasi':
                 df['Prediksi'] = ['High Spender' if p == 1 else 'Low Spender' for p in preds]
             else:
